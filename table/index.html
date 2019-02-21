@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+    <!--<script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>-->
+    <script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+    <script>
+      window.WebComponents = window.WebComponents || {};
+      window.WebComponents.root = 'node_modules/@webcomponents/webcomponentsjs/';
+    </script>
+    <script type="module" src="./build/table.js"></script>
+    <script type="module" src="search.js"></script>
+
+    <!--<script>window.WebComponents = window.WebComponents || {}, console.error(window.WebComponents)</script>-->
+</head>
+<body>
+Here i am
+<pwi-search-table search=""></pwi-search-table>
+<pwi-table
+    config='{"columns": ["andy","andy2","andy3","andy4","andy5","andy6","andy7","andy8"]}'
+    data='{"data": [
+        {
+          "col1": "PV 101",
+          "col2": "Deer Park",
+          "col3": "Utilities",
+          "col4": "",
+          "col5": "December 11th 2018, 11:28 PM",
+          "col6": "Normal",
+          "col7": "More Status Available",
+          "col8": "1"
+        },
+        {
+          "col1": "PV 101",
+          "col2": "Deer Park",
+          "col3": "Utilities",
+          "col4": "",
+          "col5": "December 11th 2018, 11:28 PM",
+          "col6": "Normal",
+          "col7": "More Status Available",
+          "col8": "1"
+        }
+    ]}'
+></pwi-table>
+
+<script>
+  document.addEventListener("search-value", function(event) {
+    console.log('from document scope',event.detail.searchValue)
+  });
+  let element = document.querySelector("pwi-table");
+  let randomData = [];
+  for (let i=0; i < 100; i++) {
+    randomData.push({
+      "col1": "New values" + i,
+      "col2": "New values",
+      "col3": "New values",
+      "col4": "",
+      "col5": "December 11th 2018, 11:28 PM",
+      "col6": "Normal",
+      "col7": "More Status Available",
+      "col8": "1"
+    })
+  }
+
+  setTimeout( function () {
+    // element.config = {
+    //   "columns": [
+    //     "First Column", "2nd Column", "3rd Column", "4th Column", "5th Column", "6th Column", "7th Column", "8th Column"]
+    // };
+    console.log('timeout fired')
+    element.config = JSON.stringify({
+      "columns": [
+        "First Column", "2nd Column", "3rd Column", "4th Column", "5th Column", "6th Column", "7th Column", "8th Column"]
+    });
+    element.data =JSON.stringify({
+      "data":  randomData
+    });
+  },3000);
+
+</script>
+
+</body>
+
+</html>

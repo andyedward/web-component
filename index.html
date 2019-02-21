@@ -11,20 +11,17 @@
 <body>
     <rainbow-text text="hello world" font-size="100"></rainbow-text>
     <my-element config="{}">
-        <span slot="slot1">settings</span>
-        <span slot="slot2">settings2</span>
+        <div slot="header">First Slot</div>
+        <div slot="middle">Middle Slot</div>
+        <div slot="footer">Last Slot</div>
     </my-element>
     <br />
-    <button onClick="change()">Change Attribute</button>
+    <button onClick="changeAttributes()">Change Attribute</button>
     <script>
-        function change() {
+        function changeAttributes() {
             let element = document.querySelector('my-element');
-            let myVar = `{
-                "name": "andy",
-                "name1": "asik.sh",
-                "name2": "murali" 
-            }`
-            element.config = myVar;
+            let myObj = '{ "name": "andy","name1": "asik", "name2": "murali" }'
+            element.config = myObj;
 
         }
     </script>

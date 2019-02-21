@@ -1,15 +1,22 @@
 class MyElement extends HTMLElement {
     constructor() {
         super();
+        let tmpl = document.createElement('template');
+        tmpl.innerHTML = `
+            <slot name="header"></slot>
+            <slot name="middle"></slot>
+            <slot name="footer"></slot>
+            Look Here => <span></span>
+        `;
+
         // Attach a shadow root to <my-element>.
         const shadowRoot = this.attachShadow({ mode: 'open' });
-        shadowRoot.innerHTML = `
-        <slot name="slot1"></slot>
-        <slot name="slot2"></slot> 
-        <span></span>   
-        `;
+        shadowRoot.appendChild(tmpl.content.cloneNode(true));
+
         this.addEventListener('click', this._onClick);
         this.displayVal = this.shadowRoot.querySelector('span');
+
+        this.middleSlot = this.shadowRoot.querySelector('slot[name=middle]');
     }
     
     connectedCallback() {
@@ -34,10 +41,16 @@ class MyElement extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         switch (name) {
             case 'config':
-                this.displayVal.innerText = this.config;
-                this.obj = JSON.parse(this.config);
+                console.log(this.config);
+                this.names = JSON.parse(this.config);
+                this.nameList=[];
+                for (let name in this.names ) {
+                    this.nameList.push(this.names[name]);
+                }
+                this.displayVal.innerText = this.nameList.join(",");
+                this.middleSlot.assignedNodes()[0].innerText = this.nameList.join(",");
+                console.log(this.middleSlot.assignedNodes()[0].innerText);
 
-                console.log(this.obj)
                 console.log(`Value changed from ${oldValue} to ${newValue}`);
                 break;
             case 'max':

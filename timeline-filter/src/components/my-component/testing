@@ -1,0 +1,47 @@
+<div class="default fade-show" ng-class="{'fade-show':showChart}" style="">
+
+    <div class="col-sm-6">
+      <div class="pull-right">
+        <div class="btn-group" data-toggle="buttons">
+        </div>
+        <button class="btn btn-default no-padding" ng-click="_getBarChartData('8hr')">
+          <img ng-src="src/apps/battery/assets/images/interval8Hours.png" width="21" src="src/apps/battery/assets/images/interval8Hours.png">
+        </button>
+        <button class="btn btn-default no-padding" ng-click="_getBarChartData('24hr')">
+          <img src="src/apps/battery/assets/images/interval24Hours.png" width="21">
+        </button>
+        <button class="btn btn-default no-padding" ng-click="_getBarChartData('weekly')">
+          <img src="src/apps/battery/assets/images/intervalWeek.png" width="21">
+        </button>
+        <button class="btn btn-default no-padding" ng-click="_getBarChartData('monthly')">
+          <img src="src/apps/battery/assets/images/intervalMonth.png" width="21">
+        </button>
+        <button class="btn btn-default no-padding" ng-click="_getBarChartData('yearly')">
+          <img src="src/apps/battery/assets/images/intervalYear.png" width="21">
+        </button>
+      </div>
+    </div>
+    <div class="center-block"><iframe class="chartjs-hidden-iframe" style="width: 100%; display: block; border: 0px; height: 0px; margin: 0px; position: absolute; left: 0px; right: 0px; top: 0px; bottom: 0px;"></iframe>
+      <canvas id="canvas" height="243" width="730" style="display: block; width: 730px; height: 243px;"></canvas>
+      <div class="text-center ng-scope">
+        <div class="labels-horseshoe ng-pristine ng-untouched ng-valid ng-scope ng-empty">
+          <ul class="bottomLabel ng-scope" ng-style="widthHorseshoe" style="width: 25%;">
+            <li class="square" ng-style="{background:colours[$index]}" style="background: rgb(206, 98, 90);"></li>
+            <li class="text ng-binding"> CRITICAL</li>
+          </ul>
+        </div>
+        <div class="labels-horseshoe ng-pristine ng-untouched ng-valid ng-scope ng-empty">
+          <ul class="bottomLabel ng-scope" ng-style="widthHorseshoe" style="width: 25%;">
+            <li class="square" ng-style="{background:colours[$index]}" style="background: rgb(255, 183, 2);"></li>
+            <li class="text ng-binding"> LOW</li>
+          </ul>
+        </div>
+        <div class="labels-horseshoe ng-pristine ng-untouched ng-valid ng-scope ng-empty">
+          <ul class="bottomLabel ng-scope" ng-style="widthHorseshoe" style="width: 25%;">
+            <li class="square" ng-style="{background:colours[$index]}" style="background: rgb(223, 223, 223);"></li>
+            <li class="text ng-binding"> GOOD</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
