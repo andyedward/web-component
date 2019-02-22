@@ -29,7 +29,7 @@ describe('True Checking', () => {
   it('should return a row markup', async() => {
     const config = {"col1": "first column", "col2": "second column"};
     const el = await fixture(`<pwi-table config='${config}' data=''></pwi-table>`);
-    const result = await el.transformRowObjectToMarkup(config);
+    const result = await el.getTableCellMarkup(config);
     console.log(result);
     expect(result).to.be.equal("<td>first column</td><td>second column</td>");
   })

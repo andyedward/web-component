@@ -42,7 +42,7 @@ var PWITable =
 
       var headerCode = _this.createHeader();
 
-      var tableBodyCode = _this.createTableData();
+      var tableBodyCode = _this.getTableDataMarkup();
 
       var tmpl = document.createElement('template');
       tmpl.innerHTML = "\n    <style>\n    table {\n        border-collapse: collapse;\n        text-align: center;\n    }\n    table th,table tr, table tr td  {\n        border: 1px solid #000;\n        padding: 8px;\n    }\n    \n    table tr td:first-child {\n        color: #20aeff;\n    }\n    </style>\n    <table>\n        ".concat(headerCode, "\n        <tbody>\n            ").concat(tableBodyCode, "\n        </tbody>\n    </table>");
@@ -64,7 +64,7 @@ var PWITable =
         }
 
         if (name === 'data') {
-          this.shadowRoot.querySelector("table tbody:nth-child(2)").innerHTML = this.createTableData(this.data);
+          this.shadowRoot.querySelector("table tbody:nth-child(2)").innerHTML = this.getTableDataMarkup(this.data);
         }
       }
     }, {
@@ -95,7 +95,7 @@ var PWITable =
         return ["P&ID Tag", "Site", "Unit", "Location", "Date/ Time", "Current Status", "Alert", "Criticality"];
       }
     }, {
-      key: "createTableData",
+      key: "getTableDataMarkup",
       value: function createTableData(data) {
         var defaultTableData = this.setDefaultBody();
         var tableDatas = defaultTableData.data;
@@ -104,7 +104,7 @@ var PWITable =
           tableDatas = typeof data == 'string' ? JSON.parse(data).data : data.data;
         }
 
-        return this.createRow(tableDatas);
+        return this.getTableRowMarkup(tableDatas);
       }
     }, {
       key: "setDefaultBody",
@@ -124,7 +124,7 @@ var PWITable =
         return bodyObj;
       }
     }, {
-      key: "createRow",
+      key: "getTableRowMarkup",
       value: function createRow(tableDatas) {
         var _this2 = this;
 
@@ -132,7 +132,7 @@ var PWITable =
 
         if (Array.isArray(tableDatas)) {
           tableDatas.forEach(function (row) {
-            var rowText = _this2.transformRowObjectToMarkup(row);
+            var rowText = _this2.getTableCellMarkup(row);
 
             tableData += "<tr>".concat(rowText, "</tr>");
           });
@@ -141,7 +141,7 @@ var PWITable =
         return tableData;
       }
     }, {
-      key: "transformRowObjectToMarkup",
+      key: "getTableCellMarkup",
       value: function transformRowObjectToMarkup(rowObj) {
         var htmlString = '';
 

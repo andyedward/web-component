@@ -1,8 +1,11 @@
 class PWITable extends HTMLElement {
+  static get observedAttributes() {
+    return ['config', 'data'];
+  }
   constructor() {
     super();
-    let headerCode = this.createHeader();
-    let tableBodyCode = this.createTableData();
+    let headerCode = this.getHeaderMarkup();
+    let tableBodyCode = this.getTableDataMarkup();
     let tmpl = document.createElement('template');
     tmpl.innerHTML = `
     <style>
@@ -19,7 +22,7 @@ class PWITable extends HTMLElement {
         color: #20aeff;
     }
     </style>
-    <table>
+    <table id="table">
         ${headerCode}
         <tbody>
             ${tableBodyCode}
@@ -29,19 +32,20 @@ class PWITable extends HTMLElement {
     const shadowRoot = this.attachShadow({ mode: 'open' });
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
-    // this.listenToSearchEvent();
-  }
+    this.sortAscending = true;
 
-  static get observedAttributes() {
-    return ['config', 'data'];
-  }
+    this.listenToUserPushDataEvent();
+    this.listenToSearchEvent();
+    this.listenToResetEvent();
 
+    this.listenToClickEventOnTable();
+  }
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'config') {
-      this.shadowRoot.querySelector("table tbody:first-child tr").innerHTML = this.createHeader(this.config)
+      this.shadowRoot.querySelector("table tbody:first-child tr").innerHTML = this.getHeaderMarkup(this.config)
     }
     if (name === 'data') {
-      this.shadowRoot.querySelector("table tbody:nth-child(2)").innerHTML = this.createTableData(this.data)
+      this.shadowRoot.querySelector("table tbody:nth-child(2)").innerHTML = this.getTableDataMarkup(this.data)
     }
   }
 
@@ -61,7 +65,20 @@ class PWITable extends HTMLElement {
     this.setAttribute('data', newConfig);
   }
 
-  createHeader(config) {
+  listenToClickEventOnTable() {
+    this.shadowRoot.addEventListener('click', e => {
+      console.log(e);
+      if (e.path[2].nodeName === 'TH') {
+        let re = /col(\w)/;
+        let className = e.path[1].className;
+        let columnIndex = className.replace(re, '$1');
+        this.sortColumn(columnIndex)
+
+      }
+    }, true)
+  }
+
+  getHeaderMarkup(config) {
     let headerText = '';
     let headerArray = this.setDefaultHeader();
     if (config) {
@@ -71,8 +88,15 @@ class PWITable extends HTMLElement {
       }
     }
     if (Array.isArray(headerArray)) {
+      let columnIndex = 0
       headerArray.forEach((colName) => {
-        headerText +=`<th>${colName}</th>`
+        columnIndex++;
+        headerText +=`
+            <th>${colName} 
+                <span class="col${columnIndex}" >
+                    <small>(sort me)</small>
+                </span>
+            </th>`
       })
     }
     return headerText;
@@ -80,16 +104,6 @@ class PWITable extends HTMLElement {
 
   setDefaultHeader() {
     return ["P&ID Tag","Site","Unit","Location","Date/ Time","Current Status","Alert","Criticality"];
-  }
-
-  createTableData(data) {
-    let defaultTableData = this.setDefaultBody();
-    let tableDatas = defaultTableData.data;
-
-    if(data && data !== "") {
-      tableDatas = (typeof data == 'string' ? JSON.parse(data).data : data.data);
-    }
-    return this.createRow(tableDatas);
   }
 
   setDefaultBody() {
@@ -110,18 +124,37 @@ class PWITable extends HTMLElement {
     return bodyObj;
   }
 
-  createRow(tableDatas) {
+  listenToUserPushDataEvent() {
+    window.addEventListener('user-push-data', e => {
+      console.log('receive user push data', e.detail)
+
+      this.originalData = e.detail;
+      this.shadowRoot.querySelector("table tbody:nth-child(2)").innerHTML = this.getTableDataMarkup(e.detail)
+    })
+  }
+
+  getTableDataMarkup(data) {
+    let defaultTableData = this.setDefaultBody();
+    let tableDatas = defaultTableData.data;
+
+    if(data && data !== "") {
+      tableDatas = (typeof data == 'string' ? JSON.parse(data).data : data.data);
+    }
+    return this.getTableRowMarkup(tableDatas);
+  }
+
+  getTableRowMarkup(tableDatas) {
     let tableData = '';
     if (Array.isArray(tableDatas)) {
       tableDatas.forEach((row) => {
-        let rowText  = this.transformRowObjectToMarkup(row);
+        let rowText  = this.getTableCellMarkup(row);
         tableData +=`<tr>${rowText}</tr>`
       })
     }
     return tableData;
   }
 
-  transformRowObjectToMarkup(rowObj) {
+  getTableCellMarkup(rowObj) {
     let htmlString = '';
     for (let value in rowObj) {
       htmlString += `<td>${rowObj[value]}</td>`;
@@ -129,13 +162,89 @@ class PWITable extends HTMLElement {
     return htmlString;
   }
 
-  // listenToSearchEvent() {
-  //   window.addEventListener('search-value', e => {
-  //     console.log('inside table', e)
-  //     let element = this.shadowRoot.querySelector("table tr td:first-child");
-  //     element.innerText = e.detail.searchValue;
-  //   })
-  // }
+  listenToSearchEvent() {
+    window.addEventListener('search-value', e => {
+      let element = this.shadowRoot.querySelector("table tr td:first-child");
+      if (element) {
+        element.innerText = e.detail.searchValue;
+      }
+      this.searchAndSetData(e.detail.searchValue);
+    })
+  }
+
+  searchAndSetData(searchText) {
+    // let existingDataArray = JSON.parse(this.data).data;
+    let existingDataArray = this.originalData.data;
+
+    let newDataArray = existingDataArray.filter((rowObj) => {
+      return Object.keys(rowObj).some(function(key) {
+        return rowObj[key].includes(searchText);
+      })
+    });
+
+    console.log(newDataArray);
+
+    this.data = JSON.stringify({data: newDataArray})
+  }
+
+  listenToResetEvent() {
+    window.addEventListener('user-reset', e => {
+      this.resetArray()
+    })
+  }
+
+  resetArray() {
+    if (this.originalData) this.data = JSON.stringify(this.originalData);
+  }
+
+  sortColumn(columnIndex) {
+    let existingDataArray = this.originalData.data;
+    let byColumn = existingDataArray.slice(0);
+    if (this.sortAscending){
+      byColumn = this.reverseSorting(byColumn, columnIndex)
+    } else {
+      byColumn = this.ascendingSorting(byColumn, columnIndex)
+    }
+    this.data = JSON.stringify({data: byColumn})
+
+  }
+
+  reverseSorting(dataArray, columnIndex) {
+    dataArray.sort(function(a,b) {
+      var nameA = a["col" + columnIndex].toUpperCase(); // ignore upper and lowercase
+      var nameB = b["col" + columnIndex].toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return 1;
+      }
+      if (nameA > nameB) {
+        return -1;
+      }
+
+      // names must be equal
+      return 0;
+    });
+    this.sortAscending = !this.sortAscending;
+    return dataArray;
+  }
+
+  ascendingSorting(dataArray, columnIndex) {
+    dataArray.sort(function(a,b) {
+      var nameA = a["col" + columnIndex].toUpperCase(); // ignore upper and lowercase
+      var nameB = b["col" + columnIndex].toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+
+      // names must be equal
+      return 0;
+    });
+    this.sortAscending = !this.sortAscending;
+    return dataArray;
+  }
+
 }
 
 customElements.define('pwi-table', PWITable)
